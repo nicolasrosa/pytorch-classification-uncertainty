@@ -95,6 +95,7 @@ def main():
         exp_lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
         device = get_device()
+        print("Using device: {}".format(device))
         model = model.to(device)
 
         model, metrics = train_model(
