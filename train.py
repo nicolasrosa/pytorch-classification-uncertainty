@@ -5,7 +5,7 @@ import time
 import torch
 from icecream import ic
 
-from helpers import get_device, one_hot_embedding
+from helpers import get_device, one_hot_encoding
 from losses import relu_evidence
 from icecream import ic
 # ---
@@ -79,14 +79,20 @@ def train_model(
                 with torch.set_grad_enabled(phase == "train"):
 
                     if uncertainty:
-                        # Example: [5, ...] -> [(0, 0, 0, 0, 0, 1, 0, 0, 0, 0), ...]
-                        y = one_hot_embedding(labels, num_classes)
+                        # One-hot encoding example : [5, ...] -> [(0, 0, 0, 0, 0, 1, 0, 0, 0, 0), ...]
+                        y = one_hot_encoding(labels, num_classes)
                         y = y.to(device)
-                        outputs = model(inputs)
-                        _, preds = torch.max(outputs, 1)
-                        loss = criterion(
-                            outputs, y.float(), epoch, num_classes, 10, device
-                        )
+                        outputs = model(inputs)  # Logits?, shape: [b, 10]
+
+                        """
+                        Usually, the softmax should be applied now, but in Evidential Deep Learning, this last operation
+                        is replaced by the relu_evidence() function. However, can we just apply the argmax function on 
+                        the logits to obtain the predicted class, which is then used to calculate the accuracy?
+                        """
+
+                        _, preds = torch.max(outputs, 1)  # Predicted class?, shape: [b]
+
+                        # TODO: Revisei até aqui
 
                         match = torch.reshape(torch.eq(preds, labels).float(), (-1, 1))
                         acc = torch.mean(match)
