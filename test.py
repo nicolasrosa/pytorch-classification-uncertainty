@@ -1,13 +1,17 @@
+# --- Libraries
+import os
+
+import numpy as np
 import torch
-from torch.autograd import Variable
 import torch.nn.functional as F
 import torchvision.transforms as transforms
-import os
-import numpy as np
-from matplotlib import pyplot as plt
 from PIL import Image
+from matplotlib import pyplot as plt
+from torch.autograd import Variable
+
+from helpers import rotate_img, get_device
 from losses import relu_evidence
-from helpers import rotate_img, one_hot_embedding, get_device
+# ---
 
 
 def test_single_image(model, img_path, uncertainty=False, device=None):

@@ -1,6 +1,7 @@
+# --- Libraries
 import torch.nn as nn
-import torch.nn.functional as F
-from collections import OrderedDict
+import torch.nn.functional as F  # Noqa
+# ---
 
 
 class LeNet(nn.Module):

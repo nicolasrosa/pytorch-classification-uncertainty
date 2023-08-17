@@ -1,6 +1,9 @@
+# --- Libraries
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as F  # Noqa
+
 from helpers import get_device
+# ---
 
 
 def relu_evidence(y):
