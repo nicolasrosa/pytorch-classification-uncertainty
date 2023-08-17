@@ -1,9 +1,12 @@
+# --- Libraries
 import torch
 import torch.nn as nn
 import copy
 import time
 from helpers import get_device, one_hot_embedding
 from losses import relu_evidence
+from icecream import ic
+# ---
 
 
 def train_model(
@@ -17,19 +20,23 @@ def train_model(
     device=None,
     uncertainty=False,
 ):
-
-    since = time.time()
+    since = time.time()  # Start time
 
     if not device:
         device = get_device()
 
+    # --- Best model weights and accuracy variables
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
+    # ---
 
+    # --- Variables for storing losses, accuracy and evidence
     losses = {"loss": [], "phase": [], "epoch": []}
     accuracy = {"accuracy": [], "phase": [], "epoch": []}
     evidences = {"evidence": [], "type": [], "epoch": []}
+    # ---
 
+    # --- Epoch loop
     for epoch in range(num_epochs):
         print("Epoch {}/{}".format(epoch+1, num_epochs))
         print("-" * 10)
@@ -49,9 +56,14 @@ def train_model(
 
             # Iterate over data.
             for i, (inputs, labels) in enumerate(dataloaders[phase]):
+                # --- Move input and label tensors to the GPU
+                inputs = inputs.to(device)  # shape: [b, 1, 28, 28]
+                labels = labels.to(device)  # shape: [b]
+                # ---
 
-                inputs = inputs.to(device)
-                labels = labels.to(device)
+                # ic(inputs.shape)
+                # ic(labels.shape)
+                # input("Press 'ENTER' to continue...")
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
@@ -61,6 +73,7 @@ def train_model(
                 with torch.set_grad_enabled(phase == "train"):
 
                     if uncertainty:
+                        # Example: [5, ...] -> [(0, 0, 0, 0, 0, 1, 0, 0, 0, 0), ...]
                         y = one_hot_embedding(labels, num_classes)
                         y = y.to(device)
                         outputs = model(inputs)
@@ -87,6 +100,8 @@ def train_model(
                     else:
                         outputs = model(inputs)
                         _, preds = torch.max(outputs, 1)
+
+                        # Compute Loss (nn.CrossEntropyLoss())
                         loss = criterion(outputs, labels)
 
                     if phase == "train":
