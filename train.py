@@ -31,7 +31,7 @@ def train_model(
     evidences = {"evidence": [], "type": [], "epoch": []}
 
     for epoch in range(num_epochs):
-        print("Epoch {}/{}".format(epoch, num_epochs - 1))
+        print("Epoch {}/{}".format(epoch+1, num_epochs))
         print("-" * 10)
 
         # Each epoch has a training and validation phase

@@ -135,6 +135,10 @@ def rotating_image_classification(
 
     if uncertainty:
         labels += ["uncertainty"]
+
+        if device == torch.device("cuda:0"):
+            lu = [x.item() for x in lu]
+
         axs[2].plot(ldeg, lu, marker="<", c="red")
 
     print(classifications)
