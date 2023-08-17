@@ -10,11 +10,11 @@ from matplotlib import pyplot as plt
 from torch.autograd import Variable
 
 from helpers import rotate_img, get_device
-from losses import relu_evidence
+from losses import get_evidence_alpha
 # ---
 
 
-def test_single_image(model, img_path, uncertainty=False, device=None):
+def eval_single_image(model, img_path, uncertainty=False, device=None):
     img = Image.open(img_path).convert("L")
     if not device:
         device = get_device()
@@ -27,8 +27,7 @@ def test_single_image(model, img_path, uncertainty=False, device=None):
 
     if uncertainty:
         output = model(img_variable)
-        evidence = relu_evidence(output)
-        alpha = evidence + 1
+        evidence, alpha = get_evidence_alpha(output)
         uncertainty = num_classes / torch.sum(alpha, dim=1, keepdim=True)
         _, preds = torch.max(output, 1)
         prob = alpha / torch.sum(alpha, dim=1, keepdim=True)
@@ -92,7 +91,7 @@ def rotating_image_classification(
 
         nimg = np.clip(a=nimg, a_min=0, a_max=1)
 
-        rimgs[:, i * 28 : (i + 1) * 28] = nimg
+        rimgs[:, i * 28: (i + 1) * 28] = nimg
         trans = transforms.ToTensor()
         img_tensor = trans(nimg)
         img_tensor.unsqueeze_(0)
@@ -101,8 +100,7 @@ def rotating_image_classification(
 
         if uncertainty:
             output = model(img_variable)
-            evidence = relu_evidence(output)
-            alpha = evidence + 1
+            evidence, alpha = get_evidence_alpha(output)
             uncertainty = num_classes / torch.sum(alpha, dim=1, keepdim=True)
             _, preds = torch.max(output, 1)
             prob = alpha / torch.sum(alpha, dim=1, keepdim=True)
