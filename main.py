@@ -90,6 +90,14 @@ def get_loss(args, use_uncertainty):
         return get_traditional_loss()
 
 
+def get_optimizer(model):
+    return optim.Adam(model.parameters(), lr=1e-3, weight_decay=0.005)
+
+
+def get_scheduler(optimizer):
+    return optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+
+
 def run_train(args):
     # --- Local variables
     num_epochs = args.epochs
@@ -97,12 +105,12 @@ def run_train(args):
     # ---
 
     # --- Define model, loss, optimizer and scheduler
-    model = LeNet(dropout=args.dropout)
+    model = LeNet(NUM_CLASSES, dropout=args.dropout)
     model = model.to(DEVICE)
 
     criterion = get_loss(args, use_uncertainty)
-    optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=0.005)
-    exp_lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+    optimizer = get_optimizer(model)
+    exp_lr_scheduler = get_scheduler(optimizer)
     # ---
 
     # --- Train model
@@ -173,7 +181,7 @@ def run_test(args):
     # ---
 
     # --- Define model and optimizer(?)
-    model = LeNet()
+    model = LeNet(NUM_CLASSES)
     model = model.to(DEVICE)
     # ---
 

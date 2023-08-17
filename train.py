@@ -10,6 +10,10 @@ from losses import relu_evidence
 from icecream import ic
 # ---
 
+# --- Global variables
+DEBUG = False
+# ---
+
 
 def train_model(
     model,
@@ -34,8 +38,8 @@ def train_model(
 
     # --- Variables for storing losses, accuracy and evidence
     losses = {"loss": [], "phase": [], "epoch": []}
-    accuracy = {"accuracy": [], "phase": [], "epoch": []}
-    evidences = {"evidence": [], "type": [], "epoch": []}
+    accuracies = {"accuracy": [], "phase": [], "epoch": []}
+    # evidences = {"evidence": [], "type": [], "epoch": []}
     # ---
 
     # --- Epoch loop
@@ -58,7 +62,7 @@ def train_model(
 
             # Iterate over data.
             for i, (inputs, labels) in enumerate(dataloaders[phase]):
-                # --- Move input and label tensors to the GPU
+                # --- Move input and label tensors to the specified device
                 inputs = inputs.to(device)  # shape: [b, 1, 28, 28]
                 labels = labels.to(device)  # shape: [b]
                 # ---
@@ -124,9 +128,9 @@ def train_model(
             losses["loss"].append(epoch_loss)
             losses["phase"].append(phase)
             losses["epoch"].append(epoch)
-            accuracy["accuracy"].append(epoch_acc.item())
-            accuracy["epoch"].append(epoch)
-            accuracy["phase"].append(phase)
+            accuracies["accuracy"].append(epoch_acc.item())
+            accuracies["phase"].append(phase)
+            accuracies["epoch"].append(epoch)
 
             print(
                 "{} loss: {:.4f} acc: {:.4f}".format(
@@ -151,6 +155,6 @@ def train_model(
 
     # load best model weights
     model.load_state_dict(best_model_wts)
-    metrics = (losses, accuracy)
+    metrics = (losses, accuracies)
 
     return model, metrics
