@@ -17,6 +17,8 @@ from train import train_model
 # --- Global variables
 DEVICE = get_device()
 print("Using device: {}".format(DEVICE))
+
+NUM_CLASSES = 10
 # ---
 
 
@@ -92,7 +94,6 @@ def run_train(args):
     # --- Local variables
     num_epochs = args.epochs
     use_uncertainty = args.uncertainty
-    num_classes = 10
     # ---
 
     # --- Define model, loss, optimizer and scheduler
@@ -108,7 +109,7 @@ def run_train(args):
     model, metrics = train_model(
         model,
         dataloaders,
-        num_classes,
+        NUM_CLASSES,
         criterion,
         optimizer,
         scheduler=exp_lr_scheduler,
