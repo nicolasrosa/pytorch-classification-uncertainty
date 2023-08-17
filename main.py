@@ -15,13 +15,13 @@ from data import dataloaders, digit_one
 from helpers import get_device
 from lenet import LeNet
 from losses import edl_mse_loss, edl_digamma_loss, edl_log_loss
-from test import rotating_image_classification, test_single_image
+from eval import rotating_image_classification, eval_single_image
 from train import train_model
 # ---
 
 # --- Global variables
 DEVICE = get_device()
-print("Using device: {}".format(DEVICE))
+print(f"Using device: {DEVICE}")
 
 NUM_CLASSES = 10
 ANNEALING_STEP = 10
@@ -67,13 +67,17 @@ def run_examples():
     batch_idx, (example_data, example_targets) = next(examples)
     plt.figure()
     for i in range(6):
-        plt.subplot(2, 3, i + 1)
-        plt.tight_layout()
-        plt.imshow(example_data[i][0], cmap="gray", interpolation="none")
-        plt.title("Ground Truth: {}".format(example_targets[i]))
-        plt.xticks([])
-        plt.yticks([])
+        subplot(i, example_data, example_targets)
     plt.savefig("./images/examples.jpg")
+
+
+def subplot(i, example_data, example_targets):
+    plt.subplot(2, 3, i + 1)
+    plt.tight_layout()
+    plt.imshow(example_data[i][0], cmap="gray", interpolation="none")
+    plt.title(f"Ground Truth: {example_targets[i]}")
+    plt.xticks([])
+    plt.yticks([])
 
 
 def get_unc_loss(args):
@@ -90,10 +94,7 @@ def get_traditional_loss():
 
 
 def get_loss(args, use_uncertainty):
-    if use_uncertainty:
-        return get_unc_loss(args)
-    else:
-        return get_traditional_loss()
+    return get_unc_loss(args) if use_uncertainty else get_traditional_loss()
 
 
 def get_optimizer(model):
@@ -203,8 +204,8 @@ def run_test(args):
 
     rotating_image_classification(model, digit_one, filename, uncertainty=use_uncertainty)
 
-    test_single_image(model, "./data/one.jpg", uncertainty=use_uncertainty)
-    test_single_image(model, "./data/yoda.jpg", uncertainty=use_uncertainty)
+    eval_single_image(model, "./data/one.jpg", uncertainty=use_uncertainty)
+    eval_single_image(model, "./data/yoda.jpg", uncertainty=use_uncertainty)
     # ---
 
 
