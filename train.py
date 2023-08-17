@@ -19,6 +19,7 @@ def train_model(
     model,
     dataloaders,
     num_classes,
+    annealing_step,
     criterion,
     optimizer,
     scheduler=None,
@@ -95,7 +96,7 @@ def train_model(
                         # TODO: Revisei até aqui
 
                         # Compute Evidential Loss (edl_digamma_loss, edl_log_loss, or edl_mse_loss)
-                        loss = criterion(outputs, y.float(), epoch, num_classes, 10, device)
+                        loss = criterion(outputs, y.float(), epoch, num_classes, annealing_step, device)
 
                         # --- Compute Accuracy
                         match = torch.reshape(torch.eq(preds, labels).float(), (-1, 1))  # shape: [b] -> [b, 1]

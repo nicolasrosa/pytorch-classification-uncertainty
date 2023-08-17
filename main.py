@@ -1,3 +1,8 @@
+# --- Helpful links
+# https://github.com/dougbrion/pytorch-classification-uncertainty
+# http://douglasbrion.com/project/pytorch-classification-uncertainty
+# ---
+
 # --- Libraries
 import argparse
 
@@ -19,6 +24,7 @@ DEVICE = get_device()
 print("Using device: {}".format(DEVICE))
 
 NUM_CLASSES = 10
+ANNEALING_STEP = 10
 # ---
 
 
@@ -118,6 +124,7 @@ def run_train(args):
         model,
         dataloaders,
         NUM_CLASSES,
+        ANNEALING_STEP,
         criterion,
         optimizer,
         scheduler=exp_lr_scheduler,

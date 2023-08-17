@@ -7,7 +7,7 @@ from helpers import get_device
 
 
 def relu_evidence(y):
-    return F.relu(y)
+    return F.relu(y)  # ReLU(logits)
 
 
 def exp_evidence(y):
