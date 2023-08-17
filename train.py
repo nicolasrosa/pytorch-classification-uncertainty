@@ -94,11 +94,20 @@ def train_model(
 
                         # TODO: Revisei até aqui
 
-                        match = torch.reshape(torch.eq(preds, labels).float(), (-1, 1))
-                        acc = torch.mean(match)
-                        evidence = relu_evidence(outputs)
-                        alpha = evidence + 1
-                        u = num_classes / torch.sum(alpha, dim=1, keepdim=True)
+                        # Compute Evidential Loss (edl_digamma_loss, edl_log_loss, or edl_mse_loss)
+                        loss = criterion(outputs, y.float(), epoch, num_classes, 10, device)
+
+                        # --- Compute Accuracy
+                        match = torch.reshape(torch.eq(preds, labels).float(), (-1, 1))  # shape: [b] -> [b, 1]
+                        acc = torch.mean(match)  # Batch accuracy, average of matches
+
+                        # --- Compute the Evidence vector and the Dirichlet parameters
+                        evidence = relu_evidence(outputs)  # Evidence vector, f(x_i, theta)
+                        alpha = evidence + 1  # Dirichlet parameters, alpha_i = f(x_i, theta) + 1
+
+                        # --- Compute the uncertainty (u) of the prediction, which is the number of classes (K) divided by the Dirichlet strength (S)
+                        u = num_classes / torch.sum(alpha, dim=1, keepdim=True)  # K / sum(alpha_i)
+                        # ---
 
                         total_evidence = torch.sum(evidence, 1, keepdim=True)
                         mean_evidence = torch.mean(total_evidence)
