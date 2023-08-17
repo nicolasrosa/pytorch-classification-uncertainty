@@ -130,36 +130,50 @@ def run_train(parser, args):
     # ---
 
 
+def get_checkpoint(args, use_uncertainty):
+    if use_uncertainty:
+        save_options = [
+            ("digamma", args.digamma, "model_uncertainty_digamma.pt", "_uncertainty_digamma.jpg"),
+            ("log", args.log, "model_uncertainty_log.pt", "_uncertainty_log.jpg"),
+            ("mse", args.mse, "model_uncertainty_mse.pt", "_uncertainty_mse.jpg")
+        ]
+    else:
+        save_options = [("model", True, ".pt", ".jpg")]
+
+    for option, arg_value, checkpoint_suffix, filename_suffix in save_options:
+        if arg_value:
+            checkpoint = torch.load(f"./results/{checkpoint_suffix}")
+            filename = f"./results/rotate{filename_suffix}"
+
+    return checkpoint, filename
+
+
 def run_test(args):
+    # --- Local variables
     use_uncertainty = args.uncertainty
+    # ---
+
+    # --- Define model and optimizer(?)
     model = LeNet()
     model = model.to(DEVICE)
-    optimizer = optim.Adam(model.parameters())
+    # optimizer = optim.Adam(model.parameters())
+    # ---
 
-    if use_uncertainty:
-        if args.digamma:
-            checkpoint = torch.load("./results/model_uncertainty_digamma.pt")
-            filename = "./results/rotate_uncertainty_digamma.jpg"
-        if args.log:
-            checkpoint = torch.load("./results/model_uncertainty_log.pt")
-            filename = "./results/rotate_uncertainty_log.jpg"
-        if args.mse:
-            checkpoint = torch.load("./results/model_uncertainty_mse.pt")
-            filename = "./results/rotate_uncertainty_mse.jpg"
-
-    else:
-        checkpoint = torch.load("./results/model.pt")
-        filename = "./results/rotate.jpg"
+    # --- Get checkpoint and restore it
+    checkpoint, filename = get_checkpoint(args, use_uncertainty)
 
     model.load_state_dict(checkpoint["model_state_dict"])
-    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+    # optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+    # ---
 
+    # --- Set model to evaluation mode and test
     model.eval()
 
     rotating_image_classification(model, digit_one, filename, uncertainty=use_uncertainty)
 
     test_single_image(model, "./data/one.jpg", uncertainty=use_uncertainty)
     test_single_image(model, "./data/yoda.jpg", uncertainty=use_uncertainty)
+    # ---
 
 
 def main():
