@@ -23,23 +23,33 @@ print("Using device: {}".format(DEVICE))
 def get_parser():
     parser = argparse.ArgumentParser()
 
+    # --- Mode group
     mode_group = parser.add_mutually_exclusive_group(required=True)
 
     mode_group.add_argument("--train", action="store_true", help="To train the network.")
     mode_group.add_argument("--test", action="store_true", help="To test the network.")
     mode_group.add_argument("--examples", action="store_true", help="To example MNIST data.")
+    # ---
 
     parser.add_argument("--epochs", default=10, type=int, help="Desired number of epochs.")
     parser.add_argument("--dropout", action="store_true", help="Whether to use dropout or not.")
     parser.add_argument("--uncertainty", action="store_true", help="Use uncertainty or not.")
 
+    # --- Uncertainty type group
     uncertainty_type_group = parser.add_mutually_exclusive_group()
-    uncertainty_type_group.add_argument("--mse", dest='mse', action="store_true",
-                                        help="Set this argument when using uncertainty. Sets loss function to Expected Mean Square Error.")
-    uncertainty_type_group.add_argument("--digamma", dest='digamma', action="store_true",
-                                        help="Set this argument when using uncertainty. Sets loss function to Expected Cross Entropy.")
-    uncertainty_type_group.add_argument("--log", dest='log', action="store_true",
-                                        help="Set this argument when using uncertainty. Sets loss function to Negative Log of the Expected Likelihood.")
+    uncertainty_type_group.add_argument(
+        "--mse", dest='mse', action="store_true",
+        help="Set this argument when using uncertainty. Sets loss function to Expected Mean Square Error."
+    )
+    uncertainty_type_group.add_argument(
+        "--digamma", dest='digamma', action="store_true",
+        help="Set this argument when using uncertainty. Sets loss function to Expected Cross Entropy."
+    )
+    uncertainty_type_group.add_argument(
+        "--log", dest='log', action="store_true",
+        help="Set this argument when using uncertainty. Sets loss function to Negative Log of the Expected Likelihood."
+    )
+    # ---
 
     return parser
 
@@ -47,7 +57,7 @@ def get_parser():
 def run_examples():
     examples = enumerate(dataloaders["val"])
     batch_idx, (example_data, example_targets) = next(examples)
-    fig = plt.figure()
+    plt.figure()
     for i in range(6):
         plt.subplot(2, 3, i + 1)
         plt.tight_layout()
@@ -58,21 +68,27 @@ def run_examples():
     plt.savefig("./images/examples.jpg")
 
 
-def get_loss(parser, args, use_uncertainty):
+def get_unc_loss(args):
+    if args.digamma:
+        return edl_digamma_loss
+    elif args.log:
+        return edl_log_loss
+    elif args.mse:
+        return edl_mse_loss
+
+
+def get_traditional_loss():
+    return nn.CrossEntropyLoss()
+
+
+def get_loss(args, use_uncertainty):
     if use_uncertainty:
-        if args.digamma:
-            return edl_digamma_loss
-        elif args.log:
-            return edl_log_loss
-        elif args.mse:
-            return edl_mse_loss
-        else:
-            parser.error("--uncertainty requires --mse, --log or --digamma.")
+        return get_unc_loss(args)
     else:
-        return nn.CrossEntropyLoss()
+        return get_traditional_loss()
 
 
-def run_train(parser, args):
+def run_train(args):
     # --- Local variables
     num_epochs = args.epochs
     use_uncertainty = args.uncertainty
@@ -83,7 +99,7 @@ def run_train(parser, args):
     model = LeNet(dropout=args.dropout)
     model = model.to(DEVICE)
 
-    criterion = get_loss(parser, args, use_uncertainty)
+    criterion = get_loss(args, use_uncertainty)
     optimizer = optim.Adam(model.parameters(), lr=1e-3, weight_decay=0.005)
     exp_lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
     # ---
@@ -131,6 +147,8 @@ def run_train(parser, args):
 
 
 def get_checkpoint(args, use_uncertainty):
+    checkpoint, filename = None, None
+
     if use_uncertainty:
         save_options = [
             ("digamma", args.digamma, "model_uncertainty_digamma.pt", "_uncertainty_digamma.jpg"),
@@ -156,14 +174,12 @@ def run_test(args):
     # --- Define model and optimizer(?)
     model = LeNet()
     model = model.to(DEVICE)
-    # optimizer = optim.Adam(model.parameters())
     # ---
 
     # --- Get checkpoint and restore it
     checkpoint, filename = get_checkpoint(args, use_uncertainty)
 
     model.load_state_dict(checkpoint["model_state_dict"])
-    # optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
     # ---
 
     # --- Set model to evaluation mode and test
@@ -176,15 +192,25 @@ def run_test(args):
     # ---
 
 
-def main():
-    # --- Get arguments
-    parser = get_parser()
+def check_args(parser):
     args = parser.parse_args()
+
+    # Check if --uncertainty is provided without any of the required options
+    if args.uncertainty and not (args.mse or args.log or args.digamma):
+        parser.error("--uncertainty requires --mse, --log, or --digamma.")
+
+    return args
+
+
+def main():
+    # --- Get arguments and check them
+    parser = get_parser()
+    args = check_args(parser)
     # ---
 
     # --- Run either train, test or examples
     if args.train:
-        run_train(parser, args)
+        run_train(args)
 
     elif args.test:
         run_test(args)
@@ -192,6 +218,8 @@ def main():
     elif args.examples:
         run_examples()
     # ---
+
+    print("\nDone!")
 
 
 if __name__ == "__main__":
