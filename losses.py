@@ -95,6 +95,14 @@ def mse_loss(y, alpha, epoch_num, num_classes, annealing_step, device=None):
 
 
 def edl_loss(func, y, alpha, epoch_num, num_classes, annealing_step, device=None):
+    """
+    log: Using the 'log' function makes the final loss corresponds to the negative log-likelihood of the marginal
+    likelihood (Type II Maximum Likelihood)
+    digamma: Using the 'digamma' function makes the final loss corresponds to the Bayes Risk when considering the
+    cross-entropy
+    """
+
+    # --- Move input and label tensors to the specified device
     y = y.to(device)
     alpha = alpha.to(device)
     # ---
@@ -122,6 +130,8 @@ def edl_mse_loss(output, target, epoch_num, num_classes, annealing_step, device=
 
 
 def edl_log_loss(output, target, epoch_num, num_classes, annealing_step, device=None):
+    """ According to the PAC-learning nomenclature, using the 'log' in the evidential learning loss makes it to
+     correspond to a Bayes classifier. """
     if not device:
         device = get_device()
 
@@ -132,9 +142,10 @@ def edl_log_loss(output, target, epoch_num, num_classes, annealing_step, device=
     )
 
 
-def edl_digamma_loss(
-    output, target, epoch_num, num_classes, annealing_step, device=None
-):
+def edl_digamma_loss(output, target, epoch_num, num_classes, annealing_step, device=None):
+    """ According to the PAC-learning nomenclature, using the 'digamma' in the evidential learning loss makes it to
+     correspond to a Gibbs classifier. """
+
     if not device:
         device = get_device()
 

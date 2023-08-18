@@ -14,6 +14,20 @@ from losses import get_evidence_alpha
 # ---
 
 
+def calc_prob(output, method, alpha=None):
+    _, preds = torch.max(output, 1)
+
+    if method == "evidence":
+        prob = alpha / torch.sum(alpha, dim=1, keepdim=True)
+    elif method == "softmax":
+        prob = F.softmax(output, dim=1)
+
+    output = output.flatten()
+    prob = prob.flatten()
+    preds = preds.flatten()
+
+    return output, preds, prob
+
 
 def eval_single_image(model, img_path, num_classes, uncertainty=False, device=None):
     img = Image.open(img_path).convert("L")
@@ -27,25 +41,18 @@ def eval_single_image(model, img_path, num_classes, uncertainty=False, device=No
 
     if uncertainty:
         output = model(img_variable)
-        evidence, alpha = get_evidence_alpha(output)
+        _, alpha = get_evidence_alpha(output)
         uncertainty = num_classes / torch.sum(alpha, dim=1, keepdim=True)
-        _, preds = torch.max(output, 1)
-        prob = alpha / torch.sum(alpha, dim=1, keepdim=True)
-        output = output.flatten()
-        prob = prob.flatten()
-        preds = preds.flatten()
+        output, preds, prob = calc_prob(output, "evidence", alpha)
+
         print("Predict:", preds[0])
         print("Probs:", prob)
         print("Uncertainty:", uncertainty)
 
     else:
-
         output = model(img_variable)
-        _, preds = torch.max(output, 1)
-        prob = F.softmax(output, dim=1)
-        output = output.flatten()
-        prob = prob.flatten()
-        preds = preds.flatten()
+        _, preds, prob = calc_prob(output, "softmax")
+
         print("Predict:", preds[0])
         print("Probs:", prob)
 
@@ -102,22 +109,16 @@ def rotating_image_classification(
             output = model(img_variable)
             evidence, alpha = get_evidence_alpha(output)
             uncertainty = num_classes / torch.sum(alpha, dim=1, keepdim=True)
-            _, preds = torch.max(output, 1)
-            prob = alpha / torch.sum(alpha, dim=1, keepdim=True)
-            output = output.flatten()
-            prob = prob.flatten()
-            preds = preds.flatten()
+
+            output, preds, prob = calc_prob(output, alpha)
+
             classifications.append(preds[0].item())
             lu.append(uncertainty.mean())
 
         else:
 
             output = model(img_variable)
-            _, preds = torch.max(output, 1)
-            prob = F.softmax(output, dim=1)
-            output = output.flatten()
-            prob = prob.flatten()
-            preds = preds.flatten()
+            _, preds, prob = calc_prob(output, "softmax")
             classifications.append(preds[0].item())
 
         scores += prob.detach().cpu().numpy() >= threshold
