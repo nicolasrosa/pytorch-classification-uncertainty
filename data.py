@@ -4,6 +4,10 @@ from torch.utils.data import DataLoader
 from torchvision.datasets.mnist import MNIST
 # ---
 
+# --- Global variables
+NUM_CLASSES = 10
+# ---
+
 # --- Training and validation datasets
 data_train = MNIST("./data/mnist",
                    download=True,

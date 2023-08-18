@@ -3,7 +3,7 @@ import os
 
 import numpy as np
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as F  # Noqa
 import torchvision.transforms as transforms
 from PIL import Image
 from matplotlib import pyplot as plt
