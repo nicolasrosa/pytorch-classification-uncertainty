@@ -119,7 +119,7 @@ This has been tested with Python `v3.6.8`, Torch `v1.3.1` and Torchvision `v0.4.
 pip install -r requirements.txt
 ```
 
-The are various arguments available for training and testing the network in addition to showing example data. When training or testing with uncertainty provide the `--uncertainty` argument in addition to one of the following for loss: `--mse`, `--digamma`, `--log`.
+There are various arguments available for training and testing the network in addition to showing example data. When training or testing with uncertainty provide the `--uncertainty` argument in addition to one of the following for loss: `--mse`, `--digamma`, `--log`.
 
 ```
 python main.py --help

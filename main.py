@@ -11,11 +11,12 @@ import torch.nn as nn
 import torch.optim as optim
 from matplotlib import pyplot as plt
 
+from data import NUM_CLASSES
 from data import dataloaders, digit_one
+from eval import rotating_image_classification, eval_single_image
 from helpers import get_device
 from lenet import LeNet
 from losses import edl_mse_loss, edl_digamma_loss, edl_log_loss
-from eval import rotating_image_classification, eval_single_image
 from train import train_model
 # ---
 
@@ -23,7 +24,6 @@ from train import train_model
 DEVICE = get_device()
 print(f"Using device: {DEVICE}")
 
-NUM_CLASSES = 10
 ANNEALING_STEP = 10
 # ---
 
