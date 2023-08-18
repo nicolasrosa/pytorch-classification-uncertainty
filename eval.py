@@ -14,11 +14,11 @@ from losses import get_evidence_alpha
 # ---
 
 
-def eval_single_image(model, img_path, uncertainty=False, device=None):
+
+def eval_single_image(model, img_path, num_classes, uncertainty=False, device=None):
     img = Image.open(img_path).convert("L")
     if not device:
         device = get_device()
-    num_classes = 10
     trans = transforms.Compose([transforms.Resize((28, 28)), transforms.ToTensor()])
     img_tensor = trans(img)
     img_tensor.unsqueeze_(0)
@@ -53,7 +53,7 @@ def eval_single_image(model, img_path, uncertainty=False, device=None):
     fig = plt.figure(figsize=[6.2, 5])
     fig, axs = plt.subplots(1, 2, gridspec_kw={"width_ratios": [1, 3]})
 
-    plt.title("Classified as: {}, Uncertainty: {}".format(preds[0], uncertainty.item()))
+    plt.title(f"Classified as: {preds[0]}, Uncertainty: {uncertainty.item()}")
 
     axs[0].set_title("One")
     axs[0].imshow(img, cmap="gray")
@@ -68,7 +68,7 @@ def eval_single_image(model, img_path, uncertainty=False, device=None):
 
     fig.tight_layout()
 
-    plt.savefig("./results/{}".format(os.path.basename(img_path)))
+    plt.savefig(f"./results/{os.path.basename(img_path)}")
 
 
 def rotating_image_classification(
@@ -78,7 +78,7 @@ def rotating_image_classification(
         device = get_device()
     num_classes = 10
     Mdeg = 180
-    Ndeg = int(Mdeg / 10) + 1
+    Ndeg = Mdeg // 10 + 1
     ldeg = []
     lp = []
     lu = []
@@ -150,8 +150,7 @@ def rotating_image_classification(
     axs[0].axis("off")
     plt.pause(0.001)
 
-    empty_lst = []
-    empty_lst.append(classifications)
+    empty_lst = [classifications]
     axs[1].table(cellText=empty_lst, bbox=[0, 1.2, 1, 1])
     axs[1].axis("off")
 

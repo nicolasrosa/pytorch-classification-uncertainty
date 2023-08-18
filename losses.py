@@ -56,7 +56,8 @@ def kl_divergence(alpha, num_classes, device=None):
 
     return first_term + second_term  # kl
 
-def loglikelihood_loss(y, alpha, device=None):
+
+def log_likelihood_loss(y, alpha, device=None):
     if not device:
         device = get_device()
 
@@ -66,8 +67,9 @@ def loglikelihood_loss(y, alpha, device=None):
     # ---
 
     S = dirichlet_strength(alpha)
-    loglikelihood_err = torch.sum((y - (alpha / S)) ** 2, dim=1, keepdim=True)
-    loglikelihood_var = torch.sum(
+    prob = alpha / S  # Estimate of the class probability, p^_i = alpha_i / S
+    log_likelihood_err = torch.sum((y - prob) ** 2, dim=1, keepdim=True)
+    log_likelihood_var = torch.sum(
         alpha * (S - alpha) / (S * S * (S + 1)), dim=1, keepdim=True
     )
 
@@ -95,9 +97,11 @@ def mse_loss(y, alpha, epoch_num, num_classes, annealing_step, device=None):
 def edl_loss(func, y, alpha, epoch_num, num_classes, annealing_step, device=None):
     y = y.to(device)
     alpha = alpha.to(device)
+    # ---
+
     S = dirichlet_strength(alpha)
 
-    A = torch.sum(y * (func(S) - func(alpha)), dim=1, keepdim=True)
+    A = torch.sum(y * (func(S) - func(alpha)), dim=1, keepdim=True)  # Sensoy et al. (2018), Eq. 3 and 4
 
     annealing_coeff = get_annealing_coefficient(epoch_num, annealing_step)
 
@@ -112,10 +116,9 @@ def edl_mse_loss(output, target, epoch_num, num_classes, annealing_step, device=
 
     _, alpha = get_evidence_alpha(output)
 
-    loss = torch.mean(
+    return torch.mean(
         mse_loss(target, alpha, epoch_num, num_classes, annealing_step, device=device)
     )
-    return loss
 
 
 def edl_log_loss(output, target, epoch_num, num_classes, annealing_step, device=None):

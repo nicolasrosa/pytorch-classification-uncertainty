@@ -3,7 +3,7 @@ import copy
 import time
 
 import torch
-from icecream import ic
+from icecream import ic  # Noqa
 
 from helpers import get_device, one_hot_encoding
 from losses import relu_evidence
@@ -40,12 +40,11 @@ def train_model(
     # --- Variables for storing losses, accuracy and evidence
     losses = {"loss": [], "phase": [], "epoch": []}
     accuracies = {"accuracy": [], "phase": [], "epoch": []}
-    # evidences = {"evidence": [], "type": [], "epoch": []}
     # ---
 
     # --- Epoch loop
     for epoch in range(num_epochs):
-        print("Epoch {}/{}".format(epoch+1, num_epochs))
+        print(f"Epoch {epoch + 1}/{num_epochs}")
         print("-" * 10)
 
         # Each epoch has a training and validation phase
@@ -59,18 +58,13 @@ def train_model(
 
             running_loss = 0.0
             running_corrects = 0.0
-            correct = 0
 
             # Iterate over data.
-            for i, (inputs, labels) in enumerate(dataloaders[phase]):
+            for inputs, labels in dataloaders[phase]:
                 # --- Move input and label tensors to the specified device
                 inputs = inputs.to(device)  # shape: [b, 1, 28, 28]
                 labels = labels.to(device)  # shape: [b]
                 # ---
-
-                # ic(inputs.shape)
-                # ic(labels.shape)
-                # input("Press 'ENTER' to continue...")
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
@@ -106,9 +100,27 @@ def train_model(
                         evidence = relu_evidence(outputs)  # Evidence vector, f(x_i, theta)
                         alpha = evidence + 1  # Dirichlet parameters, alpha_i = f(x_i, theta) + 1
 
-                        # --- Compute the uncertainty (u) of the prediction, which is the number of classes (K) divided by the Dirichlet strength (S)
+                        # --- Compute the uncertainty (u) of the prediction, which is the number of classes (K) divided
+                        # by the Dirichlet strength (S)
                         u = num_classes / torch.sum(alpha, dim=1, keepdim=True)  # K / sum(alpha_i)
                         # ---
+
+                        if DEBUG:
+                            ic(inputs.shape)
+                            ic(labels.shape)
+                            ic(labels[0])
+                            ic(y[0])
+                            ic(y[0].float())
+                            ic(outputs[0])
+                            ic(preds[0])
+                            ic(loss)
+                            # ic(torch.eq(preds, labels))  # Bool
+                            # ic(torch.eq(preds, labels).float())  # Float
+                            ic(match[0])
+                            ic(acc)
+                            ic(evidence[0])
+                            ic(u[0])
+                            input("Press 'ENTER' to continue...")
 
                         total_evidence = torch.sum(evidence, 1, keepdim=True)
                         mean_evidence = torch.mean(total_evidence)
@@ -134,9 +146,8 @@ def train_model(
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
 
-            if scheduler is not None:
-                if phase == "train":
-                    scheduler.step()
+            if scheduler is not None and phase == "train":
+                scheduler.step()
 
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
             epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
@@ -161,7 +172,7 @@ def train_model(
 
         print()
 
-    time_elapsed = time.time() - since
+    time_elapsed = time.time() - since  # End time
     print(
         "Training complete in {:.0f}m {:.0f}s".format(
             time_elapsed // 60, time_elapsed % 60

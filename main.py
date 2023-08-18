@@ -204,8 +204,8 @@ def run_test(args):
 
     rotating_image_classification(model, digit_one, filename, uncertainty=use_uncertainty)
 
-    eval_single_image(model, "./data/one.jpg", uncertainty=use_uncertainty)
-    eval_single_image(model, "./data/yoda.jpg", uncertainty=use_uncertainty)
+    eval_single_image(model, "./data/one.jpg", NUM_CLASSES,  uncertainty=use_uncertainty)
+    eval_single_image(model, "./data/yoda.jpg", NUM_CLASSES, uncertainty=use_uncertainty)
     # ---
 
 
